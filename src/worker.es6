@@ -39,7 +39,7 @@ export default class Worker extends EventEmitter {
 
         _self.slave.on('message', _self.emit.bind(_self, 'message'));
         _self.slave.on('error', _self.emit.bind(_self, 'error'));
-        _self.slave.on('disconnect', _self.emit.bind(_self, 'disconnect'));
+        _self.slave.on('exit', _self.emit.bind(_self, 'exit'));
 
         _self.slave.send({
             type: 'slave'

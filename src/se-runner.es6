@@ -42,18 +42,19 @@ export class SeRunner {
             },
             framework: 'jasmine',
             logLevel: 'INFO',
-            tests: [],
-            timeout: 60000,
             selenium: {
                 hub: 'http://hub.browserstack.com/wd/hub'
             },
+            tests: [],
+            timeout: 60000,
             jasmine: {
-                dependencies: []
+                dependencies: [],
+                timeout: 60000
             }
         };
     }
 
-    run () {
+    run (done) {
         let _self = this,
                 _onExit = function () {
                     let _workers = Utils.extend({}, _self.workers);
@@ -68,6 +69,11 @@ export class SeRunner {
 
                     _self.logger.log('Worker: ' + this.id + ' stopped');
                     delete _self.workers[this.id];
+
+                    if (0 === Object.keys(_self.workers).length) {
+                        _self.logger.log('SeRunner::run(): Done...');
+                        done && done();
+                    }
                 };
 
         process.on('SIGINT', _onExit);
@@ -86,6 +92,9 @@ export class SeRunner {
                         break;
                     case 'error':
                         break;
+                    case 'exit':
+                        _onWorkerStopped.call(worker);
+                        break;
                     case 'log':
                         _self.logger[e.logLevel](e.message);
                         break;
@@ -94,7 +103,7 @@ export class SeRunner {
             });
 
             worker.on('error', _onWorkerStopped.bind(worker));
-            worker.on('disconnect', _onWorkerStopped.bind(worker));
+            worker.on('exit', _onWorkerStopped.bind(worker));
 
             this.workers[worker.id] = worker;
 
