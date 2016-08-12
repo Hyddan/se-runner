@@ -1,17 +1,15 @@
-import childProcess from 'child_process'
 import glob from 'glob-all'
-import path from 'path'
-import Jasmine from 'jasmine-core'
-import WebDriver from 'selenium-webdriver'
 import Logger from './logger'
 import Utils from './utils'
 import Worker from './worker'
+import WorkerState from './worker-state'
 
 export class SeRunner {
     constructor (config) {
         this.config = Utils.extend({}, this.defaultConfig, config);
         this.config = Utils.extend(this.config, {
             basePath: process.cwd(),
+            concurrency: Math.min(this.config.capabilities.length, this.config.concurrency),
             driverFactory: {
                 create: this.config.driverFactory.create.toString()
             },
@@ -30,6 +28,7 @@ export class SeRunner {
         return {
             basePath: process.cwd(),
             capabilities: [],
+            concurrency: 1,
             context: {},
             dependencies: [],
             driverFactory: {
@@ -56,31 +55,57 @@ export class SeRunner {
 
     run (done) {
         let _self = this,
+                _workers = function (state = WorkerState.Working) {
+                    let _workers = [];
+                    for (let worker in _self.workers) {
+                        if (!_self.workers.hasOwnProperty(worker)) continue;
+
+                        if (state === _self.workers[worker].state) {
+                            _workers.push(_self.workers[worker]);
+                        }
+                    }
+
+                    return _workers;
+                },
                 _onExit = function () {
                     let _workers = Utils.extend({}, _self.workers);
                     for (let worker in _workers) {
                         if (!_workers.hasOwnProperty(worker)) continue;
 
-                        _workers[worker].done(true);
+                        if (WorkerState.Done !== _workers[worker].state) {
+                            _workers[worker].done(true);
+                        }
                     }
                 },
                 _onWorkerStopped = function () {
-                    this.done();
+                    if (WorkerState.Done !== this.state) {
+                        this.done();
+                    }
 
                     _self.logger.log('Worker: ' + this.id + ' stopped');
-                    delete _self.workers[this.id];
 
-                    if (0 === Object.keys(_self.workers).length) {
-                        _self.logger.log('SeRunner::run(): Done...');
-                        done && done();
+                    if (_workers(WorkerState.Done).length !== Object.keys(_self.workers).length) {
+                        let _pendingWorkers = _workers(WorkerState.Pending);
+                        for (let worker in _pendingWorkers) {
+                            if (!_pendingWorkers.hasOwnProperty(worker)) continue;
+
+                            if (_self.config.concurrency > _workers(WorkerState.Working).length) {
+                                _pendingWorkers[worker].work();
+                            }
+                        }
+
+                        return;
                     }
+
+                    _self.logger.log('SeRunner::run(): Done...');
+                    done && done();
                 };
 
         process.on('SIGINT', _onExit);
         process.on('exit', _onExit);
 
-        _self.logger.log('SeRunner::run(): Starting ' + this.config.capabilities.length + ' workers...');
-        for (let capabilities of this.config.capabilities) {
+        _self.logger.log('SeRunner::run(): Starting ' + _self.config.capabilities.length + ' workers, maximum ' + _self.config.concurrency + ' at the time...');
+        for (let capabilities of _self.config.capabilities) {
             let worker = new Worker(Utils.guid(), _self.config, capabilities);
 
             worker.on('message', function (e) {
@@ -107,7 +132,9 @@ export class SeRunner {
 
             this.workers[worker.id] = worker;
 
-            worker.work();
+            if (_self.config.concurrency > _workers(WorkerState.Working).length) {
+                worker.work();
+            }
         }
     }
 }

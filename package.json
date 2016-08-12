@@ -1,6 +1,6 @@
 {
   "name": "se-runner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Selenium Test Runner",
   "main": "index.js",
   "scripts": {
