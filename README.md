@@ -8,6 +8,9 @@
 npm install se-runner --save-dev
 ```
 
+## NPM package
+* https://npmjs.com/package/se-runner
+
 ## Why use SeRunner
 SeRunner will allow you to configure multiple capabilities (browsers) to run your tests against. While there are other test runners that allow for this,
 where SeRunner differ from these is that it will also inject the Selenium WebDriver into each test suite giving you the ability to control the browser from within the tests. For this to work properly, each file containing tests must
@@ -60,9 +63,9 @@ var seRunner = require('se-runner'),
             driverFactory: {
                 create: function (capabilities) {
                     return new (require('selenium-webdriver')).Builder()
-                        .usingServer(this.selenium.hub)
-                        .withCapabilities(capabilities)
-                        .build();
+                                    .usingServer(this.selenium.hub)
+                                    .withCapabilities(capabilities)
+                                    .build();
                 }
             },
             framework: 'jasmine',
@@ -75,8 +78,42 @@ var seRunner = require('se-runner'),
             ]
         });
 
-runner.run(function () {
-    // Done callback
+runner.run(function (data) {
+    // Done callback - data.success indicates success or failure
+});
+```
+
+## Api
+
+### Setup
+```js
+var seRunner = require('se-runner'),
+        runner = seRunner.create(options);
+```
+
+### Global Methods
+
+#### create
+* options - Object.
+
+Creates a new instance of an SeRunner.
+
+```js
+var runner = seRunner.create(options);
+```
+
+#### Instance Methods
+
+### run
+* done - Function. Receives one argument `data` described below.
+  * data - Object.
+    * error - Object or null. Will be populated if SeRunner encountered an unexpected exception.
+    * reports - Array of SeRunner reports. One per process.
+    * success - Boolean. Indicates success or failure.
+
+```js
+runner.run(function (data) {
+    // Execution complete
 });
 ```
 
@@ -87,6 +124,12 @@ Type: `Array`
 Default value: `[]`
 
 A list of WebDriver capabilities to start on the Selenium hub.
+
+#### concurrency
+Type: `Number`
+Default value: `1`
+
+Number of concurrent processes that will be run.
 
 #### context
 Type: `Object`
@@ -143,6 +186,12 @@ Default value: `{}`
 
 Any values given here will be passed into the framework adaptor.
 
+#### [framework].consoleReporter
+Type: `Boolean`
+Default value: `true`
+
+Whether the framework adaptor should report to the console as things are happening or not.
+
 #### [framework].dependencies
 Type: `Array`
 Default value: `[]`
@@ -160,4 +209,6 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+ * 2016-12-09   v1.2.0   Compile report of each process and communicate result back to initiator.
+ * 2016-08-12   v1.1.0   Adding concurrency limitation.
  * 2016-05-10   v1.0.0   Initial version.
