@@ -21,6 +21,7 @@ export class SeRunner {
         }
 
         this.logger = new Logger(this.config.logLevel);
+        this.reports = [];
         this.workers = {};
     }
 
@@ -47,6 +48,7 @@ export class SeRunner {
             tests: [],
             timeout: 60000,
             jasmine: {
+                consoleReporter: true,
                 dependencies: [],
                 timeout: 60000
             }
@@ -55,6 +57,16 @@ export class SeRunner {
 
     run (done) {
         let _self = this,
+                _doneCalled = false,
+                _done = function (error) {
+                    !_doneCalled && (_doneCalled = true) && done && done({
+                        error: error || null,
+                        reports: _self.reports,
+                        success: error ? false : !_self.reports.some(function (r) {
+                            return !r.report.success
+                        })
+                    });
+                },
                 _workers = function (state = WorkerState.Working) {
                     let _workers = [];
                     for (let worker in _self.workers) {
@@ -76,6 +88,8 @@ export class SeRunner {
                             _workers[worker].done(true);
                         }
                     }
+
+                    _done();
                 },
                 _onWorkerStopped = function () {
                     if (WorkerState.Done !== this.state) {
@@ -98,7 +112,7 @@ export class SeRunner {
                     }
 
                     _self.logger.log('SeRunner::run(): Done...');
-                    done && done();
+                    _done();
                 };
 
         process.on('SIGINT', _onExit);
@@ -116,14 +130,26 @@ export class SeRunner {
                     case 'data':
                         break;
                     case 'error':
+                        _done(e);
                         break;
                     case 'exit':
-                        _onWorkerStopped.call(worker);
+                        _onWorkerStopped.call(this);
                         break;
                     case 'log':
                         _self.logger[e.logLevel](e.message);
                         break;
+                    case 'report':
+                        let _config = Object.assign({}, this.config, {
+                            workerId: this.id
+                        });
+                        delete _config.capabilities;
 
+                        _self.reports.push({
+                            config: _config,
+                            description: this.description,
+                            report: e.report
+                        });
+                        break;
                 }
             });
 

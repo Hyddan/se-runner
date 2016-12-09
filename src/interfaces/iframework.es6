@@ -3,5 +3,5 @@ export default class IFramework {
 
     initialize (config) {}
 
-    createRunner (config) {}
+    createRunner () {}
 }

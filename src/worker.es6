@@ -7,10 +7,23 @@ export default class Worker extends EventEmitter {
     constructor (id, config, capabilities) {
         super();
 
+        let _buildCapabilitiesDescription = function (capabilities) {
+            let device = capabilities.device ? 'Device: ' + capabilities.device : '',
+                    realMobile = 'boolean' === typeof (capabilities.real_mobile) ? capabilities.real_mobile : false,
+                    os = capabilities.os ? 'Os: ' + capabilities.os + ', ' : '',
+                    osVersion = 'Os Version: ' + (capabilities.os_version ? capabilities.os_version : 'Latest') + ', ',
+                    browser = capabilities.browserName ? 'Browser: ' + capabilities.browserName + ', ' : '',
+                    browserVersion = 'Browser Version: ' + (capabilities.browser_version ? capabilities.browser_version : 'Latest');
+
+            return ('Testing on ' + (device ? (realMobile ? 'Real ' : 'Simulated ') + device + ', ' : '') + os + osVersion + browser + browserVersion);
+        };
+
         this.id = id;
         this.config = config;
         this.capabilities = capabilities;
         this.data = '';
+        this.description = _buildCapabilitiesDescription(this.capabilities);
+        this.config.description = this.description;
         this.logger = new Logger(this.config.logLevel);
         this.slave = null;
         this.state = WorkerState.Pending;

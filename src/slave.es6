@@ -56,10 +56,18 @@ class Slave {
 
         _self.driver = null;
 
-        this.framework = new (require('se-runner-framework-' + this.config.framework))().initialize(Utils.extend({
-            basePath: this.config.basePath,
-            timeout: this.config.timeout
-        }, this.config[this.config.framework]));
+        _self.framework = new (require('se-runner-framework-' + _self.config.framework))().initialize(Utils.extend({
+            basePath: _self.config.basePath,
+            timeout: _self.config.timeout
+        }, _self.config[_self.config.framework], {
+            done: function (report) {
+                process.send({
+                    type: 'report',
+                    report: _self.report = report,
+                    pid: _self.pid
+                });
+            }
+        }));
 
         process.on('message', function (e) {
             switch (e.type) {
@@ -127,7 +135,7 @@ class Slave {
             }
 
             try {
-                console.log('Testing on ' + _self.capabilities.browserName + ', sessionId: ' + _sessionId + '\n');
+                console.log(_self.config.description + ', sessionId: ' + _sessionId + '\n');
                 runner.run();
             }
             catch (e) {
@@ -135,7 +143,8 @@ class Slave {
                     type: 'error',
                     message: 'Jasmine error',
                     error: e,
-                    pid: _self.pid
+                    pid: _self.pid,
+                    stack: e.stack
                 });
 
                 _self.driver.quit().then(function () {
@@ -147,7 +156,8 @@ class Slave {
                 type: 'error',
                 message: 'WebDriver error',
                 error: e,
-                pid: _self.pid
+                pid: _self.pid,
+                stack: e.stack
             });
 
             process.disconnect();
