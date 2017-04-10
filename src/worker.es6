@@ -9,7 +9,7 @@ export default class Worker extends EventEmitter {
 
         let _buildCapabilitiesDescription = function (capabilities) {
             let device = capabilities.device ? 'Device: ' + capabilities.device : '',
-                    realMobile = 'boolean' === typeof (capabilities.real_mobile) ? capabilities.real_mobile : false,
+                    realMobile = 'boolean' === typeof (capabilities.realMobile) ? capabilities.realMobile : 'boolean' === typeof (capabilities.real_mobile) ? capabilities.real_mobile : false,
                     os = capabilities.os ? 'Os: ' + capabilities.os + ', ' : '',
                     osVersion = 'Os Version: ' + (capabilities.os_version ? capabilities.os_version : 'Latest') + ', ',
                     browser = capabilities.browserName ? 'Browser: ' + capabilities.browserName + ', ' : '',
