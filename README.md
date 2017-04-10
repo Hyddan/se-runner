@@ -209,6 +209,7 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+ * 2017-04-10   v1.2.1   Handle realMobile capability.
  * 2016-12-09   v1.2.0   Compile report of each process and communicate result back to initiator.
  * 2016-08-12   v1.1.0   Adding concurrency limitation.
  * 2016-05-10   v1.0.0   Initial version.

@@ -141,7 +141,7 @@ class Slave {
             catch (e) {
                 process.send({
                     type: 'error',
-                    message: 'Jasmine error',
+                    message: _self.config.framework.charAt(0).toUpperCase() + _self.config.framework.slice(1) + ' error',
                     error: e,
                     pid: _self.pid,
                     stack: e.stack
