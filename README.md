@@ -18,6 +18,9 @@ export a function used to inject a context and must call context.done() once all
 
 ### Examples
 
+#### SeRunner BrowserStack Example
+For a full, ready to run, example using [se-runner](https://github.com/Hyddan/se-runner#readme) with [grunt-se-runner](https://github.com/Hyddan/grunt-se-runner#readme) and [se-runner-framework-jasmine](https://github.com/Hyddan/se-runner-framework-jasmine#readme), see [se-runner-browserstack-example](https://github.com/Hyddan/se-runner-browserstack-example#readme).
+
 #### Test
 This is how a file containing tests should be structured to be used with SeRunner. This example uses Jasmine syntax for the test code.
 
