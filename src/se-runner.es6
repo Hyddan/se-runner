@@ -120,7 +120,7 @@ export class SeRunner {
 
         _self.logger.log('SeRunner::run(): Starting ' + _self.config.capabilities.length + ' workers, maximum ' + _self.config.concurrency + ' at the time...');
         for (let capabilities of _self.config.capabilities) {
-            let worker = new Worker(Utils.guid(), _self.config, capabilities);
+            let worker = new Worker(Utils.guid(), Utils.extend({}, _self.config), Utils.extend({}, capabilities));
 
             worker.on('message', function (e) {
                 switch (e.type) {
@@ -139,7 +139,7 @@ export class SeRunner {
                         _self.logger[e.logLevel](e.message);
                         break;
                     case 'report':
-                        let _config = Object.assign({}, this.config, {
+                        let _config = Utils.extend({}, this.config, {
                             workerId: this.id
                         });
                         delete _config.capabilities;
