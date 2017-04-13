@@ -212,6 +212,7 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+ * 2017-04-13   v1.3.0   Added total execution time to run result.
  * 2017-04-11   v1.2.3   Fixed scoping issue - copy configuration values into worker instead of passing reference.
  * 2017-04-10   v1.2.2   Added link in README to se-runner-browserstack-example.
  * 2017-04-10   v1.2.1   Handle realMobile capability.
