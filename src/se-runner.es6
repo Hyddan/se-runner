@@ -58,8 +58,10 @@ export class SeRunner {
     run (done) {
         let _self = this,
                 _doneCalled = false,
+                _start = new Date().getTime(),
                 _done = function (error) {
                     !_doneCalled && (_doneCalled = true) && done && done({
+                        duration: (new Date().getTime() - _start) / 1000,
                         error: error || null,
                         reports: _self.reports,
                         success: error ? false : !_self.reports.some(function (r) {
